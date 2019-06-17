@@ -41,8 +41,16 @@ class Consume extends AbstractProcess
                         } else {
 //                        var_dump($response);
                             Logger::getInstance()->console("消费发生错误：{$data['url']}  code:" . $response->getStatusCode(), Logger::LOG_LEVEL_WARNING);
-                            RedisLogic::addConsumeMap($data['url'],0);
-                            RedisLogic::addConsume($data);
+                            if (isset($data['errorNum'])) {
+                                $data['errorNum'] += 1;
+                            } else {
+                                $data['errorNum'] = 1;
+                            }
+
+                            if ($data['errorNum'] <= 5) {
+                                RedisLogic::addConsumeMap($data['url'], 0);
+                                RedisLogic::addConsume($data);
+                            }
                         }
 //                Coroutine::sleep(0.1);
                     }
