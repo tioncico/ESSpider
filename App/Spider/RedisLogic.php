@@ -121,4 +121,5 @@ class RedisLogic
             return (bool)$result;
         },0);
     }
+
 }

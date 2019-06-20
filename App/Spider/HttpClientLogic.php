@@ -64,14 +64,25 @@ class HttpClientLogic
     static function getTrueUrl($preUrl, $link)
     {
         $urlInfo = parse_url($preUrl);
+        //分析path
+        if (isset($urlInfo['path'])){
+            $pathArr = explode('/',$urlInfo['path']);
+            if (!empty($pathArr[count($pathArr)-1])){
+                array_pop($pathArr);
+                $urlInfo['path'] = implode('/',$pathArr);
+            }
+        }else{
+            $urlInfo['path']='/';
+        }
+
         if (substr($link, 0, 1) == '/') {
             $url = $urlInfo['scheme'] . '://' . $urlInfo['host'] . $link;
         } elseif (substr($link, 0, 2) == './') {
-            $url = $urlInfo['scheme'] . '://' . $urlInfo['host'] . $link;
+            $url = $urlInfo['scheme'] . '://' . $urlInfo['host'].$urlInfo['path'].'/' . $link;
         } else {
-            $url = $link;
+            $url = $urlInfo['scheme'] . '://' . $urlInfo['host'].$urlInfo['path'].'/' . $link;
         }
-
         return $url;
     }
+
 }

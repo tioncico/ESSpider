@@ -25,7 +25,7 @@ class Produce extends AbstractProcess
 //        RedisLogic::clearProduceMap();
 //        RedisLogic::clearConsumeList();
 //        RedisLogic::clearProduceList();
-//        RedisLogic::addProduce('https://www.mzitu.com/');
+//        RedisLogic::addProduce('http://moe.005.tv/moeimg/');
         // TODO: Implement run() method.
         $produceListKey = 'easyswooleProduceList';
         $maxDepth = $arg['maxDepth'];
