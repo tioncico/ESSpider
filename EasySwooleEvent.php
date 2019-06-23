@@ -37,13 +37,8 @@ class EasySwooleEvent implements Event
         $maxDepth = 3;
         $produce = new Produce('produce', ['maxDepth' => $maxDepth, 'maxCoroutineNum' => 1], false, \EasySwoole\Component\Process\Config::PIPE_TYPE_SOCK_DGRAM, true);
         ServerManager::getInstance()->getSwooleServer()->addProcess($produce->getProcess());
-        ServerManager::getInstance()->getSwooleServer()->addProcess($produce->getProcess());
 
         $consume = new Consume('consume', ['maxDepth' => $maxDepth, 'maxCoroutineNum' => 1], false, \EasySwoole\Component\Process\Config::PIPE_TYPE_SOCK_DGRAM, true);
-        ServerManager::getInstance()->getSwooleServer()->addProcess($consume->getProcess());
-        ServerManager::getInstance()->getSwooleServer()->addProcess($consume->getProcess());
-        ServerManager::getInstance()->getSwooleServer()->addProcess($consume->getProcess());
-        ServerManager::getInstance()->getSwooleServer()->addProcess($consume->getProcess());
         ServerManager::getInstance()->getSwooleServer()->addProcess($consume->getProcess());
         // TODO: Implement mainServerCreate() method.
     }
