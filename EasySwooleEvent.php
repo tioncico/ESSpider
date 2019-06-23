@@ -9,9 +9,8 @@
 namespace EasySwoole\EasySwoole;
 
 
-use App\Process\DomainHandel;
-use App\Process\ParsePage;
-use App\Process\ProcessInit;
+use App\Process\Consume;
+use App\Process\Produce;
 use EasySwoole\EasySwoole\Swoole\EventRegister;
 use EasySwoole\EasySwoole\AbstractInterface\Event;
 use EasySwoole\Http\Request;
@@ -27,27 +26,25 @@ class EasySwooleEvent implements Event
         date_default_timezone_set('Asia/Shanghai');
 
         $redisConfig = new \EasySwoole\RedisPool\Config(Config::getInstance()->getConf('REDIS'));
-         $a = Redis::getInstance()->register('redis', $redisConfig);
-        $a->setMaxObjectNum(100);
-        $mysqlConfig = new \EasySwoole\Mysqli\Config(Config::getInstance()->getConf('MYSQL'));
-        \EasySwoole\MysqliPool\Mysql::getInstance()->register('mysql', $mysqlConfig);
-
+        $a = Redis::getInstance()->register('redis', $redisConfig);
+        $a->setMaxObjectNum(50);
+//        $mysqlConfig = new \EasySwoole\Mysqli\Config(Config::getInstance()->getConf('MYSQL'));
+//        \EasySwoole\MysqliPool\Mysql::getInstance()->register('mysql', $mysqlConfig);
     }
 
     public static function mainServerCreate(EventRegister $register)
     {
-        $webUrl = 'www.php20.cn';
-        $matchValue = "/仙士可/";
         $maxDepth = 3;
-        $processInit = new ProcessInit('processInit', ['webUrl'=>$webUrl,'maxDepth'=>$maxDepth,'isClear'=>true,'matchValue'=>$matchValue],false,\EasySwoole\Component\Process\Config::PIPE_TYPE_SOCK_DGRAM,true);
-        ServerManager::getInstance()->getSwooleServer()->addProcess($processInit->getProcess());
+        $produce = new Produce('produce', ['maxDepth' => $maxDepth, 'maxCoroutineNum' => 1], false, \EasySwoole\Component\Process\Config::PIPE_TYPE_SOCK_DGRAM, true);
+        ServerManager::getInstance()->getSwooleServer()->addProcess($produce->getProcess());
+        ServerManager::getInstance()->getSwooleServer()->addProcess($produce->getProcess());
 
-        $parsePage = new ParsePage('processInit', ['maxDepth'=>$maxDepth],false,\EasySwoole\Component\Process\Config::PIPE_TYPE_SOCK_DGRAM,true);
-        ServerManager::getInstance()->getSwooleServer()->addProcess($parsePage->getProcess());
-
-        $domainHandel = new DomainHandel('processInit', [],false,\EasySwoole\Component\Process\Config::PIPE_TYPE_SOCK_DGRAM,true);
-        ServerManager::getInstance()->getSwooleServer()->addProcess($domainHandel->getProcess());
-
+        $consume = new Consume('consume', ['maxDepth' => $maxDepth, 'maxCoroutineNum' => 1], false, \EasySwoole\Component\Process\Config::PIPE_TYPE_SOCK_DGRAM, true);
+        ServerManager::getInstance()->getSwooleServer()->addProcess($consume->getProcess());
+        ServerManager::getInstance()->getSwooleServer()->addProcess($consume->getProcess());
+        ServerManager::getInstance()->getSwooleServer()->addProcess($consume->getProcess());
+        ServerManager::getInstance()->getSwooleServer()->addProcess($consume->getProcess());
+        ServerManager::getInstance()->getSwooleServer()->addProcess($consume->getProcess());
         // TODO: Implement mainServerCreate() method.
     }
 

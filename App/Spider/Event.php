@@ -2,6 +2,13 @@
 
 namespace App\Spider;
 
+use App\Model\img\CosplayImgBean;
+use App\Model\img\CosplayImgModel;
+use App\Model\img\ImgBean;
+use App\Model\img\ImgModel;
+use EasySwoole\EasySwoole\Logger;
+use EasySwoole\MysqliPool\Connection;
+use EasySwoole\MysqliPool\Mysql;
 use EasySwoole\Utility\File;
 use QL\QueryList;
 
@@ -23,7 +30,7 @@ class Event
             //查询下一页链接，用于继续爬取数据
             @$ql = QueryList::html($html);
             $nextLink = $ql->find('.pagelist .n')->attr('href');
-            $nextLink = HttpClientLogic::getTrueUrl($data['url'],$nextLink);
+            $nextLink = HttpClientLogic::getTrueUrl($data['url'], $nextLink);
             if ($nextLink) {
                 RedisLogic::addConsume([
                     'type' => 1,//消费标识
@@ -32,17 +39,35 @@ class Event
             }
             $imgList = $ql->find('.content_nr img')->attrs('src')->all();
 //            var_dump($img);
+            $title = $ql->find('.content_w_box h1')->html();
             foreach ($imgList as $img) {
-                RedisLogic::addConsume([
-                    'type' => 2,//消费标识
-                    'url'  => $img,
-                ]);
+                Mysql::invoker('mysql', function (Connection $db) use ($img, $title) {
+                    $urlInfo = parse_url($img);
+                    $filePath = '/media/tioncico/2T硬盘资源文件/网站爬虫相关/cosplay/' . $urlInfo['host'] . $urlInfo['path'];
+                    $model = new CosplayImgModel($db);
+                    $bean = new CosplayImgBean();
+                    $bean->setSourceUrl('http://moe.005.tv/');
+                    $bean->setFilePath($urlInfo['host'] . $urlInfo['path']);
+                    $bean->setImgName($title);
+                    $bean->setImgTitle($title);
+                    $result = $model->add($bean);
+                    if ($result === false) {
+                        Logger::getInstance()->console('插入失败', Logger::LOG_LEVEL_WARNING);
+                    }
+
+                    RedisLogic::addConsume([
+                        'type' => 2,//消费标识
+                        'url'  => $img,
+                    ]);
+                });
+
             }
         } elseif ($data['type'] == 2) {
             $urlInfo = parse_url($data['url']);
-            $filePath = EASYSWOOLE_ROOT . '/Temp/' . $urlInfo['host'] . $urlInfo['path'];
+            $filePath = '/media/tioncico/2T硬盘资源文件/网站爬虫相关/cosplay/' . $urlInfo['host'] . $urlInfo['path'];
 //            var_dump($filePath);
             File::createFile($filePath, $html);
+
 //            var_dump($data['url']);
         }
 
@@ -57,7 +82,7 @@ class Event
         //查询下一页链接，用于继续爬取数据
         $nextLink = $ql->find('.pagelist .n')->attr('href');
         //由于爬取到的是相对路径，我们需要增加完整的路径
-        $nextLink = HttpClientLogic::getTrueUrl($data['url'],$nextLink);
+        $nextLink = HttpClientLogic::getTrueUrl($data['url'], $nextLink);
 
         RedisLogic::addProduce($nextLink);
 
