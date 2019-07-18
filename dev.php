@@ -36,7 +36,7 @@ return [
         'port' => 3306,
         'user' => 'root',
         'password' => '123456',
-        'database' => 'spider',
+        'database' => 'test',
         'timeout' => 5,
         'charset' => 'utf8mb4',
         'POOL_MAX_NUM' => 10,
