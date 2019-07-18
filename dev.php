@@ -35,7 +35,7 @@ return [
         'host' => '127.0.0.1',
         'port' => 3306,
         'user' => 'root',
-        'password' => '123456',
+        'password' => 'ning1997',
         'database' => 'spider',
         'timeout' => 5,
         'charset' => 'utf8mb4',
