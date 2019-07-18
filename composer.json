@@ -3,9 +3,9 @@
         "easyswoole/easyswoole": "3.x-dev",
         "easyswoole/http-client": "^1.2",
         "easyswoole/mysqli-pool": "^1.0",
-        "easyswoole/redis-pool": "^1.0",
+        "easyswoole/redis-pool": "dev-master",
         "php-curl-class/php-curl-class": "^8.5",
-        "tioncico/curd-automatic-generation": "^1.0",
+        "tioncico/curd-automatic-generation": "dev-master",
         "jaeger/querylist": "^4.1",
         "swoole/ide-helper": "^4.3"
     },

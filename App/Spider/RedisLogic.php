@@ -13,113 +13,55 @@ use EasySwoole\RedisPool\Redis;
 
 class RedisLogic
 {
+    static $redisName = 'redis';
 
-    static function addProduce($data)
+    static function add($key, $data)
     {
-        return Redis::invoker('redis', function (\Swoole\Coroutine\Redis $redis) use ($data) {
-            $produceListKey = 'easyswooleProduceList';
+        return Redis::invoker(self::$redisName, function (\Swoole\Coroutine\Redis $redis) use ($key, $data) {
+            ;
             if (is_string($data)) {
                 $data = [
                     'url' => $data,
                 ];
             }
-            if (self::checkProduceMap($data['url'])) {
+            if (self::checkMap($key, $data['url'])) {
                 return true;
             }
-            self::addProduceMap($data['url']);
-            $result = $redis->rPush($produceListKey, $data);
+            self::addMap($key, $data['url']);
+            $result = $redis->rPush($key, $data);
             return $result;
-        },0);
+        }, 0);
     }
 
-    static function checkProduceMap($url)
+    static function checkMap($key, $url)
     {
-        return Redis::invoker('redis', function (\Swoole\Coroutine\Redis $redis) use ($url) {
-            $produceUrlMapKey = 'produceUrlMapKey';
-            $result = $redis->hGet($produceUrlMapKey, $url);
+        return Redis::invoker(self::$redisName, function (\Swoole\Coroutine\Redis $redis) use ($key, $url) {
+            $key = $key . 'Map';
+            $result = $redis->hGet($key, $url);
             return (bool)$result;
-        },0);
+        }, 0);
     }
 
-    static function addProduceMap($url,$state=1)
+    static function addMap($key, $url, $state = 1)
     {
-        return Redis::invoker('redis', function (\Swoole\Coroutine\Redis $redis) use ($url,$state) {
-            $produceUrlMapKey = 'produceUrlMapKey';
-            $result = $redis->hset($produceUrlMapKey, $url, $state);
+        return Redis::invoker(self::$redisName, function (\Swoole\Coroutine\Redis $redis) use ($key, $url, $state) {
+            $key = $key . 'Map';
+            $result = $redis->hset($key, $url, $state);
             return (bool)$result;
-        },0);
+        }, 0);
     }
 
-    static function addConsume($data)
-    {
-        return Redis::invoker('redis', function (\Swoole\Coroutine\Redis $redis) use ($data) {
-            $consumeListKey = 'easyswooleConsumeList';
-            if (is_string($data)) {
-                $data = [
-                    'url' => $data,
-                ];
-            }
-            if (self::checkConsumeMap($data['url'])) {
-                return true;
-            }
-            self::addConsumeMap($data['url']);
-            $result = $redis->rPush($consumeListKey, $data);
-            return $result;
-        },0);
-    }
-
-    static function checkConsumeMap($url)
-    {
-        return Redis::invoker('redis', function (\Swoole\Coroutine\Redis $redis) use ($url) {
-            $consumeUrlMapKey = 'consumeUrlMapKey';
-            $result = $redis->hGet($consumeUrlMapKey, $url);
+    static function clear($key){
+        return Redis::invoker(self::$redisName, function (\Swoole\Coroutine\Redis $redis) use ($key) {
+            $result = $redis->delete($key);
             return (bool)$result;
-        },0);
+        }, 0);
     }
-
-    static function addConsumeMap($url,$state=1)
-    {
-        return Redis::invoker('redis', function (\Swoole\Coroutine\Redis $redis) use ($url,$state) {
-            $consumeUrlMapKey = 'consumeUrlMapKey';
-            $result = $redis->hset($consumeUrlMapKey, $url, $state);
+    static function clearMap($key){
+        return Redis::invoker(self::$redisName, function (\Swoole\Coroutine\Redis $redis) use ($key) {
+            $key = $key . 'Map';
+            $result = $redis->delete($key);
             return (bool)$result;
-        },0);
+        }, 0);
     }
-
-    static function clearConsumeMap()
-    {
-        return Redis::invoker('redis', function (\Swoole\Coroutine\Redis $redis) {
-            $consumeUrlMapKey = 'consumeUrlMapKey';
-            $result = $redis->delete($consumeUrlMapKey);
-            return (bool)$result;
-        },0);
-    }
-
-    static function clearProduceMap()
-    {
-        return Redis::invoker('redis', function (\Swoole\Coroutine\Redis $redis) {
-            $consumeUrlMapKey = 'produceUrlMapKey';
-            $result = $redis->delete($consumeUrlMapKey);
-            return (bool)$result;
-        },0);
-    }
-
-    static function clearConsumeList()
-    {
-        return Redis::invoker('redis', function (\Swoole\Coroutine\Redis $redis) {
-            $consumeUrlMapKey = 'easyswooleConsumeList';
-            $result = $redis->delete($consumeUrlMapKey);
-            return (bool)$result;
-        },0);
-    }
-
-    static function clearProduceList()
-    {
-        return Redis::invoker('redis', function (\Swoole\Coroutine\Redis $redis) {
-            $consumeUrlMapKey = 'easyswooleProduceList';
-            $result = $redis->delete($consumeUrlMapKey);
-            return (bool)$result;
-        },0);
-    }
-
 }
