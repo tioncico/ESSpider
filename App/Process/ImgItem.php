@@ -43,7 +43,7 @@ class ImgItem extends SpiderBase
             $this->tryAgain($data);
             return;
         }
-        $this->handelData($response->getBody(),$data);
+        $this->handelData($response->getBody(), $data);
     }
 
     /**
@@ -59,15 +59,21 @@ class ImgItem extends SpiderBase
         //获得一个queryList对象，并且防止报错
         libxml_use_internal_errors(true);
         @$ql = QueryList::html($html);
-        //获得本页的所有图片
-        $imgList = $ql->find('.pic-content img')->attrs('src,alt')->all();
-        var_dump($imgList);
+        $rules = [
+            'src' => ['.artile_des img', 'src'],
+            'alt' => ['.artile_des img', 'alt'],
+        ];
+        //获取当前图片详情的标题
+        $title = $ql->find('.pic-title a')->html();
+        $imgList = $ql->rules($rules)->query()->range('.pic-content')->getData()->all();
         //将图片主题的链接入列到新的队列
-//        foreach ($imgList as $value) {
-//            RedisLogic::add('imgItem',$value);
-//        }
+        foreach ($imgList as $value) {
+            RedisLogic::add('imgDown',[
+                'url'=>$value['src'],
+                'alt'=>$value['alt'],
+                'title'=>$title
+            ]);
+        }
         $ql->destruct();
     }
-
-
 }

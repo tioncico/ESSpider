@@ -8,7 +8,6 @@
 
 namespace App\Spider;
 
-
 use EasySwoole\EasySwoole\Logger;
 use EasySwoole\HttpClient\Bean\Response;
 use EasySwoole\HttpClient\HttpClient;
@@ -27,8 +26,8 @@ class HttpClientLogic
         if ($cookie) {
             $httpClient->getClient()->setCookies($cookie);
         }
-        $response = $httpClient->getRequest([
-            'referer'=>$url
+        $response = $httpClient->get([
+            'referer' => $url
         ]);
 //        if ($response->getStatusCode() == '302') {
 //            return self::getHtmlContent(self::getTrueUrl($url, $response->getHeaders()['location']), $i + 1);
@@ -63,26 +62,50 @@ class HttpClientLogic
 
     static function getTrueUrl($preUrl, $link)
     {
+        //分析来源网站 path
         $urlInfo = parse_url($preUrl);
-        //分析path
-        if (isset($urlInfo['path'])){
-            $pathArr = explode('/',$urlInfo['path']);
-            if (!empty($pathArr[count($pathArr)-1])){
-                array_pop($pathArr);
-                $urlInfo['path'] = implode('/',$pathArr);
+        $linkUrlInfo = parse_url($link);
+        //目标url没有scheme的情况
+        if (!isset($linkUrlInfo['scheme'])) {
+            //没有域名,使用的绝对路径和相对路径
+            //绝对路径
+            if (substr($link, 0, 1) == '/') {
+                $linkUrlInfo['scheme'] = $urlInfo['scheme'];
+                $linkUrlInfo['host'] = $urlInfo['host'];
+            } elseif (substr($link, 0, 2) == './') {
+                $linkUrlInfo['scheme'] = $urlInfo['scheme'];
+                $linkUrlInfo['host'] = $urlInfo['host'];
+                if (substr($urlInfo['path'],-1,1)=='/'){
+                    $urlInfo['path'] = substr($urlInfo['path'],0,strlen($urlInfo['path'])-1);
+                }
+                $linkUrlInfo['path'] = $urlInfo['path'] . str_replace('./','/',$linkUrlInfo['path']);
             }
-        }else{
-            $urlInfo['path']='/';
+            //有域名,没有http://,会显示在path中
+            $linkUrlPathArr = explode('/', $linkUrlInfo['path']);
+            //域名显示在path中的情况
+            if (strpos($linkUrlPathArr[0], '.') != -1) {
+                $linkUrlInfo['scheme'] = $urlInfo['scheme'];
+            }else{
+                //没有域名的情况
+                $linkUrlInfo['scheme'] = $urlInfo['scheme'];
+                $linkUrlInfo['host'] = $urlInfo['host'];
+            }
         }
+        return self::unParseUrl($linkUrlInfo);
+    }
 
-        if (substr($link, 0, 1) == '/') {
-            $url = $urlInfo['scheme'] . '://' . $urlInfo['host'] . $link;
-        } elseif (substr($link, 0, 2) == './') {
-            $url = $urlInfo['scheme'] . '://' . $urlInfo['host'].$urlInfo['path'].'/' . $link;
-        } else {
-            $url = $urlInfo['scheme'] . '://' . $urlInfo['host'].$urlInfo['path'].'/' . $link;
-        }
-        return $url;
+   static function unParseUrl($parsedUrl)
+    {
+        $scheme = isset($parsedUrl['scheme']) ? $parsedUrl['scheme'] . '://' : '';
+        $host = isset($parsedUrl['host']) ? $parsedUrl['host'] : '';
+        $port = isset($parsedUrl['port']) ? ':' . $parsedUrl['port'] : '';
+        $user = isset($parsedUrl['user']) ? $parsedUrl['user'] : '';
+        $pass = isset($parsedUrl['pass']) ? ':' . $parsedUrl['pass'] : '';
+        $pass = ($user || $pass) ? "$pass@" : '';
+        $path = isset($parsedUrl['path']) ? $parsedUrl['path'] : '';
+        $query = isset($parsedUrl['query']) ? '?' . $parsedUrl['query'] : '';
+        $fragment = isset($parsedUrl['fragment']) ? '#' . $parsedUrl['fragment'] : '';
+        return "$scheme$user$pass$host$port$path$query$fragment";
     }
 
 }

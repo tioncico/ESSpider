@@ -9,6 +9,7 @@
 namespace EasySwoole\EasySwoole;
 
 
+use App\Process\ImgDown;
 use App\Process\ImgItem;
 use App\Process\Page;
 use App\Process\Produce;
@@ -45,7 +46,20 @@ class EasySwooleEvent implements Event
         ServerManager::getInstance()->getSwooleServer()->addProcess($page->getProcess());
 
 
-        $imgItem = new ImgItem('img', $arg, false, \EasySwoole\Component\Process\Config::PIPE_TYPE_SOCK_DGRAM, true);
+        $arg = [
+            'listKey'         => 'imgItem',
+            'maxCoroutineNum' => 3,
+            'clear'           => Page::CLEAR_NO
+        ];
+        $imgItem = new ImgItem('imgItem', $arg, false, \EasySwoole\Component\Process\Config::PIPE_TYPE_SOCK_DGRAM, true);
+        ServerManager::getInstance()->getSwooleServer()->addProcess($imgItem->getProcess());
+
+        $arg = [
+            'listKey'         => 'imgDown',
+            'maxCoroutineNum' => 3,
+            'clear'           => Page::CLEAR_NO
+        ];
+        $imgItem = new ImgDown('imgDown', $arg, false, \EasySwoole\Component\Process\Config::PIPE_TYPE_SOCK_DGRAM, true);
         ServerManager::getInstance()->getSwooleServer()->addProcess($imgItem->getProcess());
 
     }
